@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Exam Token</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         @keyframes float {
             0%, 100% { transform: translateY(0px); }
@@ -63,6 +64,10 @@
         .btn-primary:active {
             transform: translateY(0);
         }
+        
+        .btn-primary:disabled {
+            @apply bg-gray-400 cursor-not-allowed;
+        }
 
         .lang-btn {
             opacity: 0.5;
@@ -84,7 +89,7 @@
             <div class="relative w-full max-w-sm" id="characterContainer">
                 <img 
                     id="characterImage" 
-                    src="1.png" 
+                    src="https://raw.githubusercontent.com/alfisyusuf/ku-token-siswa/main/1.png" 
                     alt="Karakter Siswa" 
                     class="character-image float-animation w-full h-full object-contain drop-shadow-xl"
                 >
@@ -126,8 +131,8 @@
                             type="submit" 
                             id="submitBtn"
                             class="btn-primary w-full py-4 text-white font-bold rounded-xl text-lg shadow-lg"
-                            data-key="submitButton"
                         >
+                           <span data-key="submitButton"></span>
                         </button>
                     </form>
                     
@@ -157,7 +162,6 @@
     </div>
 
     <script>
-        // --- Ambil Elemen ---
         const characterImage = document.getElementById('characterImage');
         const tokenInput = document.getElementById('tokenInput');
         const tokenForm = document.getElementById('tokenForm');
@@ -166,17 +170,18 @@
         const successMessage = document.getElementById('successMessage');
         const btnEn = document.getElementById('btn-en');
         const btnId = document.getElementById('btn-id');
-
+        
+        // URL Karakter
+        const IMG_URL_BASE = 'https://raw.githubusercontent.com/alfisyusuf/ku-token-siswa/main/';
+        
+        // GANTI INI DENGAN LINK PORTAL UJIAN SEBENARNYA
         const ALAMAT_PORTAL_UJIAN = 'https://google.com'; 
 
-        // ===============================================
-        // OBJEK PENYIMPANAN BAHASA (DIPERBARUI)
-        // ===============================================
         const translations = {
             'en': {
                 'pageTitle': 'Exam Token',
                 'charHeader': 'The Exam Awaits',
-                'charSubheader': 'Please verify your token to proceed.', // <-- DIPERBARUI
+                'charSubheader': 'Please verify your token to proceed.',
                 'formTitle': 'Exam Token',
                 'formSubtitle': 'Please enter the token you were given.',
                 'tokenLabel': 'Token',
@@ -186,12 +191,12 @@
                 'tipsText': '💡 <strong>Tip:</strong> Ensure your token is correct. Contact the proctor if you have issues.',
                 'successTitle': 'Success!',
                 'successSubtitle': 'Your token has been verified.',
-                'redirectText': 'Proceeding to Exam Portal...' // <-- DIPERBARUI
+                'redirectText': 'Proceeding to Exam Portal...'
             },
             'id': {
                 'pageTitle': 'Token Ujian',
                 'charHeader': 'Ujian Sudah Menanti',
-                'charSubheader': 'Silakan verifikasi token Anda untuk melanjutkan.', // <-- DIPERBARUI
+                'charSubheader': 'Silakan verifikasi token Anda untuk melanjutkan.',
                 'formTitle': 'Token Ujian',
                 'formSubtitle': 'Silakan masukkan token yang telah diberikan.',
                 'tokenLabel': 'Token',
@@ -201,16 +206,14 @@
                 'tipsText': '💡 <strong>Tips:</strong> Pastikan token Anda benar. Hubungi pengawas jika ada kendala.',
                 'successTitle': 'Berhasil!',
                 'successSubtitle': 'Token Anda telah terverifikasi.',
-                'redirectText': 'Menuju Portal Ujian...' // <-- DIPERBARUI
+                'redirectText': 'Menuju Portal Ujian...'
             }
         };
 
-        // Bahasa default saat ini
-        let currentLang = 'en';
+        let currentLang = 'id'; // Default ke Bahasa Indonesia
 
         function setLanguage(lang) {
             currentLang = lang; 
-            
             document.documentElement.lang = lang;
             document.title = translations[lang].pageTitle;
 
@@ -227,6 +230,10 @@
                 const key = element.getAttribute('data-key-placeholder');
                 element.placeholder = translations[lang][key];
             });
+            
+            // Setel teks tombol submit
+            submitBtn.querySelector('span').setAttribute('data-key', 'submitButton');
+            submitBtn.querySelector('span').textContent = translations[lang].submitButton;
 
             if (lang === 'en') {
                 btnEn.classList.add('active');
@@ -246,7 +253,7 @@
             if (currentImage !== imageName) {
                 characterImage.style.opacity = '0';
                 setTimeout(() => {
-                    characterImage.src = imageName;
+                    characterImage.src = IMG_URL_BASE + imageName;
                     currentImage = imageName;
                     characterImage.style.opacity = '1';
                 }, 300);
@@ -267,28 +274,64 @@
             }
         });
 
-        tokenForm.addEventListener('submit', function(e) {
+        // --- INI BAGIAN UTAMA YANG DIPERBARUI ---
+        tokenForm.addEventListener('submit', async function(e) {
             e.preventDefault();
             
+            const token = tokenInput.value;
+            
+            // Tampilkan status loading
+            submitBtn.querySelector('span').textContent = translations[currentLang].processingButton;
+            submitBtn.disabled = true;
             changeCharacter('3.png');
             
-            submitBtn.textContent = translations[currentLang].processingButton;
-            submitBtn.disabled = true;
-            
-            setTimeout(() => {
-                formContainer.style.display = 'none';
-                successMessage.style.display = 'block';
-                successMessage.classList.add('animate-fadeIn');
+            try {
+                // Panggil API backend kita
+                const response = await fetch('/api/verify-token', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ token: token })
+                });
                 
-                setTimeout(() => {
-                    window.location.href = ALAMAT_PORTAL_UJIAN;
-                }, 2500); 
-
-            }, 1500);
+                const data = await response.json();
+                
+                if (data.success === true) {
+                    // --- JIKA SUKSES ---
+                    formContainer.style.display = 'none';
+                    successMessage.style.display = 'block';
+                    successMessage.classList.add('animate-fadeIn');
+                    
+                    // Arahkan ke portal ujian
+                    setTimeout(() => {
+                        window.location.href = ALAMAT_PORTAL_UJIAN;
+                    }, 2500); 
+                    
+                } else {
+                    // --- JIKA GAGAL (Token salah / Sistem nonaktif) ---
+                    throw new Error(data.message || 'Token salah');
+                }
+                
+            } catch (err) {
+                // --- TANGANI SEMUA ERROR (Jaringan, Token salah, dll) ---
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: err.message || 'Token salah atau terjadi masalah',
+                    toast: true,
+                    position: 'top',
+                    showConfirmButton: false,
+                    timer: 3000
+                });
+                
+                // Kembalikan tombol ke normal
+                submitBtn.querySelector('span').textContent = translations[currentLang].submitButton;
+                submitBtn.disabled = false;
+                changeCharacter('1.png');
+            }
         });
 
         document.addEventListener('DOMContentLoaded', () => {
-            setLanguage('en');
+            setLanguage('id'); // Mulai dengan Bahasa Indonesia
         });
     </script>
 </body>
