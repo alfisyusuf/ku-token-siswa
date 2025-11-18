@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exam Token</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-15px); }
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .spinner {
+            animation: spin 1s linear infinite;
+        }
+        
+        .character-image {
+            transition: opacity 0.3s ease-in-out;
+            animation: fadeIn 0.5s ease-out 0.3s;
+            animation-fill-mode: backwards;
+        }
+        
+        .float-animation {
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        .form-content {
+             animation: fadeIn 0.5s ease-out 0.6s;
+             animation-fill-mode: backwards;
+        }
+        
+        input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+            background-color: #fff;
+        }
+        
+        input {
+            background-color: #f9fafb;
+        }
+        
+        .btn-primary {
+            background-color: #2563eb;
+            transition: all 0.2s ease;
+        }
+        
+        .btn-primary:hover {
+            background-color: #1d4ed8;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .lang-btn {
+            opacity: 0.5;
+            transition: opacity 0.2s;
+            cursor: pointer;
+        }
+        .lang-btn.active,
+        .lang-btn:hover {
+            opacity: 1;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body class="bg-white flex items-center justify-center min-h-screen p-4">
+
+    <div class="w-full max-w-6xl mx-auto grid md:grid-cols-2 items-center gap-8 md:gap-16">
+
+        <div class="hidden md:flex flex-col items-center justify-center text-center p-8">
+            <div class="relative w-full max-w-sm" id="characterContainer">
+                <img 
+                    id="characterImage" 
+                    src="1.png" 
+                    alt="Karakter Siswa" 
+                    class="character-image float-animation w-full h-full object-contain drop-shadow-xl"
+                >
+            </div>
+            <div class="mt-6 character-image" style="animation-delay: 0.5s;">
+                <h2 class="text-3xl font-bold text-gray-800" data-key="charHeader"></h2>
+                <p class="text-gray-600 text-lg mt-2" data-key="charSubheader"></p>
+            </div>
+        </div>
+        
+        <div class="flex items-center justify-center p-4 md:p-8">
+            <div class="w-full max-w-md">
+
+                <div class="flex justify-end space-x-2 mb-4 text-blue-600">
+                    <span id="btn-en" class="lang-btn">EN</span>
+                    <span>|</span>
+                    <span id="btn-id" class="lang-btn">ID</span>
+                </div>
+
+                <div id="formContainer" class="form-content">
+                    <div class="mb-8 text-center md:text-left">
+                        <h1 class="text-4xl font-bold text-gray-900 mb-2" data-key="formTitle"></h1>
+                        <p class="text-gray-600 text-lg" data-key="formSubtitle"></p>
+                    </div>
+                    
+                    <form id="tokenForm" class="space-y-6">
+                        <div>
+                            <label for="tokenInput" class="block text-sm font-semibold text-gray-700 mb-2" data-key="tokenLabel"></label>
+                            <input 
+                                type="text" 
+                                id="tokenInput" 
+                                data-key-placeholder="tokenPlaceholder"
+                                class="w-full px-5 py-4 text-lg border-2 border-gray-200 rounded-xl transition-all duration-300"
+                                required
+                            >
+                        </div>
+                        
+                        <button 
+                            type="submit" 
+                            id="submitBtn"
+                            class="btn-primary w-full py-4 text-white font-bold rounded-xl text-lg shadow-lg"
+                            data-key="submitButton"
+                        >
+                        </button>
+                    </form>
+                    
+                    <div class="mt-8 p-4 bg-blue-50 rounded-xl">
+                        <p class="text-sm text-blue-800 text-center" data-key="tipsText"></p>
+                    </div>
+                </div>
+
+                <div id="successMessage" class="text-center" style="display: none;">
+                    <svg class="w-16 h-16 text-green-500 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    
+                    <h2 class="text-3xl font-bold text-gray-800 mt-4" data-key="successTitle"></h2>
+                    <p class="text-gray-600 text-lg mt-2" data-key="successSubtitle"></p>
+                    
+                    <div class="mt-8 flex items-center justify-center text-blue-600">
+                        <svg class="w-6 h-6 spinner mr-3" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 3a9 9 0 0 1 9 9h-2a7 7 0 0 0-7-7V3z"></path>
+                        </svg>
+                        
+                        <span data-key="redirectText"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- Ambil Elemen ---
+        const characterImage = document.getElementById('characterImage');
+        const tokenInput = document.getElementById('tokenInput');
+        const tokenForm = document.getElementById('tokenForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const formContainer = document.getElementById('formContainer');
+        const successMessage = document.getElementById('successMessage');
+        const btnEn = document.getElementById('btn-en');
+        const btnId = document.getElementById('btn-id');
+
+        const ALAMAT_PORTAL_UJIAN = 'https://google.com'; 
+
+        // ===============================================
+        // OBJEK PENYIMPANAN BAHASA (DIPERBARUI)
+        // ===============================================
+        const translations = {
+            'en': {
+                'pageTitle': 'Exam Token',
+                'charHeader': 'The Exam Awaits',
+                'charSubheader': 'Please verify your token to proceed.', // <-- DIPERBARUI
+                'formTitle': 'Exam Token',
+                'formSubtitle': 'Please enter the token you were given.',
+                'tokenLabel': 'Token',
+                'tokenPlaceholder': 'Enter your token here...',
+                'submitButton': 'Start Exam',
+                'processingButton': 'Processing...',
+                'tipsText': '💡 <strong>Tip:</strong> Ensure your token is correct. Contact the proctor if you have issues.',
+                'successTitle': 'Success!',
+                'successSubtitle': 'Your token has been verified.',
+                'redirectText': 'Proceeding to Exam Portal...' // <-- DIPERBARUI
+            },
+            'id': {
+                'pageTitle': 'Token Ujian',
+                'charHeader': 'Ujian Sudah Menanti',
+                'charSubheader': 'Silakan verifikasi token Anda untuk melanjutkan.', // <-- DIPERBARUI
+                'formTitle': 'Token Ujian',
+                'formSubtitle': 'Silakan masukkan token yang telah diberikan.',
+                'tokenLabel': 'Token',
+                'tokenPlaceholder': 'Masukkan token di sini...',
+                'submitButton': 'Mulai Ujian',
+                'processingButton': 'Memproses...',
+                'tipsText': '💡 <strong>Tips:</strong> Pastikan token Anda benar. Hubungi pengawas jika ada kendala.',
+                'successTitle': 'Berhasil!',
+                'successSubtitle': 'Token Anda telah terverifikasi.',
+                'redirectText': 'Menuju Portal Ujian...' // <-- DIPERBARUI
+            }
+        };
+
+        // Bahasa default saat ini
+        let currentLang = 'en';
+
+        function setLanguage(lang) {
+            currentLang = lang; 
+            
+            document.documentElement.lang = lang;
+            document.title = translations[lang].pageTitle;
+
+            document.querySelectorAll('[data-key]').forEach(element => {
+                const key = element.getAttribute('data-key');
+                if (key === 'tipsText') {
+                    element.innerHTML = translations[lang][key];
+                } else {
+                    element.textContent = translations[lang][key];
+                }
+            });
+
+            document.querySelectorAll('[data-key-placeholder]').forEach(element => {
+                const key = element.getAttribute('data-key-placeholder');
+                element.placeholder = translations[lang][key];
+            });
+
+            if (lang === 'en') {
+                btnEn.classList.add('active');
+                btnId.classList.remove('active');
+            } else {
+                btnId.classList.add('active');
+                btnEn.classList.remove('active');
+            }
+        }
+
+        btnEn.addEventListener('click', () => setLanguage('en'));
+        btnId.addEventListener('click', () => setLanguage('id'));
+        
+        let currentImage = '1.png';
+        function changeCharacter(imageName) {
+            if (!characterImage) return;
+            if (currentImage !== imageName) {
+                characterImage.style.opacity = '0';
+                setTimeout(() => {
+                    characterImage.src = imageName;
+                    currentImage = imageName;
+                    characterImage.style.opacity = '1';
+                }, 300);
+            }
+        }
+        
+        tokenInput.addEventListener('input', function() {
+            if (this.value.length > 0) {
+                changeCharacter('2.png');
+            } else {
+                changeCharacter('1.png');
+            }
+        });
+        
+        tokenInput.addEventListener('blur', function() {
+            if (this.value.length === 0) {
+                changeCharacter('1.png');
+            }
+        });
+
+        tokenForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            changeCharacter('3.png');
+            
+            submitBtn.textContent = translations[currentLang].processingButton;
+            submitBtn.disabled = true;
+            
+            setTimeout(() => {
+                formContainer.style.display = 'none';
+                successMessage.style.display = 'block';
+                successMessage.classList.add('animate-fadeIn');
+                
+                setTimeout(() => {
+                    window.location.href = ALAMAT_PORTAL_UJIAN;
+                }, 2500); 
+
+            }, 1500);
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            setLanguage('en');
+        });
+    </script>
+</body>
+</html>
