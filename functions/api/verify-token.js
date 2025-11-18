@@ -1,12 +1,13 @@
 /*
  * File: /functions/api/verify-token.js
- * API ini adalah "penjaga gerbang" untuk siswa.
- * Ia memeriksa token yang dikirim siswa dengan token di KV.
+ * VERSI DIPERBARUI:
+ * Sekarang jika sukses, ia juga mengambil EXAM_URL dari KV
+ * dan mengirimkannya kembali sebagai 'redirectUrl'.
  */
 
 export async function onRequestPost(context) {
   const { request, env } = context;
-
+  
   try {
     const { token: studentToken } = await request.json();
 
@@ -20,24 +21,38 @@ export async function onRequestPost(context) {
       return new Response(JSON.stringify({ 
         success: false, 
         message: 'Sistem ujian sedang tidak aktif.' 
-      }), { status: 403 }); // 403 Forbidden
+      }), { status: 403 });
     }
 
     // 2. Cek Token
     const correctToken = await env.EXAM_KV.get('CURRENT_TOKEN');
-
+    
     // 3. Bandingkan
     if (studentToken.toUpperCase() === correctToken.toUpperCase()) {
-      // BERHASIL!
-      return new Response(JSON.stringify({ success: true }));
+      // --- BERHASIL! ---
+      
+      // 4. AMBIL URL UJIAN DINAMIS DARI KV
+      const examUrl = await env.EXAM_KV.get('EXAM_URL');
+      
+      if (!examUrl) {
+        // Ini terjadi jika admin lupa mengatur URL
+        throw new Error('Link Ujian belum diatur oleh Admin.');
+      }
+
+      // 5. Kirim 'success' DAN 'redirectUrl'
+      return new Response(JSON.stringify({ 
+        success: true,
+        redirectUrl: examUrl // <- DATA BARU
+      }));
+      
     } else {
-      // GAGAL
+      // --- GAGAL ---
       return new Response(JSON.stringify({ 
         success: false, 
         message: 'Token yang Anda masukkan salah.' 
-      }), { status: 401 }); // 401 Unauthorized
+      }), { status: 401 });
     }
-
+    
   } catch (e) {
     return new Response(JSON.stringify({ 
       success: false, 
